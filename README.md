@@ -1,5 +1,7 @@
 # API Weather — API serverless con AWS Lambda
 
+[![CI](https://github.com/festupinans/API_Weather/actions/workflows/ci.yml/badge.svg)](https://github.com/festupinans/API_Weather/actions/workflows/ci.yml)
+
 API serverless (API Gateway + AWS Lambda) en **TypeScript** que consulta el clima actual de una ciudad en [Open-Meteo](https://open-meteo.com/), transforma la respuesta y la expone con un contrato propio, limpio y estable.
 
 ```
@@ -12,7 +14,7 @@ Cliente ──► API Gateway ──► Lambda ──► Open-Meteo Geocoding  (
         ◄── JSON con contrato propio
 ```
 
-**Stack:** Node.js 22 · TypeScript (strict) · Serverless Framework v3 · serverless-offline · esbuild · Vitest
+**Stack:** Node.js 22 · TypeScript (strict) · Serverless Framework v3 · serverless-offline · esbuild · Vitest · Biome · GitHub Actions
 
 ---
 
@@ -22,6 +24,7 @@ Cliente ──► API Gateway ──► Lambda ──► Open-Meteo Geocoding  (
 - [Instalación](#instalación)
 - [Ejecución local](#ejecución-local)
 - [Pruebas](#pruebas)
+- [Lint e integración continua](#lint-e-integración-continua)
 - [Configuración](#configuración)
 - [Contrato de la API y ejemplos](#contrato-de-la-api-y-ejemplos)
 - [Arquitectura](#arquitectura)
@@ -34,7 +37,7 @@ Cliente ──► API Gateway ──► Lambda ──► Open-Meteo Geocoding  (
 
 ## Requisitos previos
 
-- **Node.js ≥ 22** (desarrollado y probado con Node 26; la Lambda usa el runtime `nodejs22.x`)
+- **Node.js ≥ 22.12** (desarrollado con Node 26; el CI y la Lambda usan Node 22)
 - **npm**
 - Conexión a internet para consultar Open-Meteo (las pruebas **no** la necesitan)
 
@@ -80,6 +83,22 @@ npm run typecheck      # verificación de tipos con tsc
 | `tests/handlers/weather.test.ts` | Respuestas HTTP 200/400/404/502/500, que el 500 no exponga detalles internos y que los logs lleven `requestId` |
 | `tests/domain/weatherCondition.test.ts` | Mapeo de códigos WMO y valor por defecto |
 | `tests/config.test.ts` | Valores por defecto, lectura y validación de variables de entorno |
+
+## Lint e integración continua
+
+```bash
+npm run lint       # lint + formato + orden de imports (Biome)
+npm run lint:fix   # aplica los arreglos automáticos
+npm run ci         # lint + typecheck + pruebas con cobertura (lo mismo que el CI)
+```
+
+El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada push a `main` y en cada pull request, con **Node 22** (el mismo runtime de la Lambda):
+
+1. `npm ci` — instalación reproducible desde `package-lock.json`
+2. `npm run lint` — Biome
+3. `npm run typecheck` — `tsc --noEmit`
+4. `npm run test:coverage` — Vitest
+5. `npm run package` — verifica que el artefacto de despliegue se genera
 
 ## Configuración
 
@@ -266,6 +285,8 @@ Cada línea es un JSON con, como mínimo, `level`, `message`, `timestamp` y `req
 | **Logger propio (~50 líneas)** | Cubre el requisito (JSON, nivel, mensaje, `requestId`) sin dependencias. Escribe con `process.stdout.write` porque en Lambda `console.log` antepone texto plano y rompe el JSON. |
 | **Valores por defecto para las URLs** | Son públicas, no sensibles; se pueden sobrescribir por entorno. Evita que el proyecto falle si no se crea un `.env`. |
 | **Vitest en lugar de Jest** | API compatible con Jest, soporte nativo de TypeScript sin configuración. `ts-jest` depende de la API del compilador que cambió en TypeScript 7. |
+| **Biome en lugar de ESLint + Prettier** | `typescript-eslint` aún no soporta TypeScript 7 (requiere `< 6.1`, porque TS 7 ya no expone la API de JavaScript del compilador). Biome no depende del compilador, hace lint y formato con una sola dependencia y es mucho más rápido. |
+| **CI con GitHub Actions en Node 22** | Valida en cada push exactamente lo que corre en AWS (runtime `nodejs22.x`), aunque el desarrollo local use una versión más nueva. Incluye `serverless package` para detectar a tiempo errores de empaquetado. |
 | **Inyección de dependencias** (config, `fetch`, proveedor, logger) | Hace cada capa testeable de forma aislada, sin mocks globales. |
 
 ## Despliegue en AWS (opcional)
@@ -284,7 +305,8 @@ npx serverless remove             # elimina todos los recursos creados
 - **Reintentos con backoff exponencial** ante errores transitorios (5xx, errores de red), respetando un presupuesto de tiempo total.
 - **Presupuesto de tiempo global por petición.** Hoy cada llamada tiene su propio timeout de 5 s, así que el peor caso es ~10 s; un *deadline* compartido limitaría el total.
 - **Documentación OpenAPI** del contrato.
-- **CI con GitHub Actions** (typecheck, lint y pruebas en cada push) y **ESLint + Prettier**.
+- **CD**: un job de despliegue a AWS desde GitHub Actions usando OIDC (sin credenciales guardadas en el repo).
+- **Reglas de lint con información de tipos** (p. ej. detectar promesas sin `await`) cuando `typescript-eslint` soporte TypeScript 7, o fijar TypeScript 6 para tenerlas ya.
 - **zod** para validar las respuestas de Open-Meteo y derivar los tipos del esquema.
 - **AWS Lambda Powertools** (Logger, Metrics, Tracer) para logs, métricas y trazas con X-Ray.
 - **Migrar la infraestructura** a Serverless v4, AWS CDK o SAM: Serverless v3 ya no recibe actualizaciones (por eso el aviso con `nodejs22.x`).
