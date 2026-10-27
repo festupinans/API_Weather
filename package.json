@@ -1,0 +1,26 @@
+{
+  "name": "api-weather",
+  "version": "1.0.0",
+  "description": "API serverless (API Gateway + Lambda) que expone el clima actual de una ciudad usando Open-Meteo",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/festupinans/API_Weather.git"
+  },
+  "bugs": {
+    "url": "https://github.com/festupinans/API_Weather/issues"
+  },
+  "homepage": "https://github.com/festupinans/API_Weather#readme",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.164",
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  }
+}

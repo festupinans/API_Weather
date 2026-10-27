@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+
+# Builds y artefactos de Serverless / SAM
+dist/
+.serverless/
+.esbuild/
+.aws-sam/
+
+# Cobertura de tests
+coverage/
+
+# Variables de entorno locales (nunca se suben)
+.env
+.env.*
+!.env.example
+
+# Sistema / editor
+.DS_Store
+.vscode/
+*.log
