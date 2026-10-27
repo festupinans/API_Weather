@@ -252,6 +252,7 @@ Cada línea es un JSON con, como mínimo, `level`, `message`, `timestamp` y `req
 |---|---|
 | **Lambda "pura", sin Express** | La prueba evalúa el modelo API Gateway + Lambda. Para un solo endpoint, API Gateway ya hace de router; Express añadiría peso y tiempo de arranque en frío sin aportar nada. |
 | **Serverless Framework v3 + serverless-offline** | Permite correr todo en local con `npm run dev`, sin Docker (AWS SAM lo requiere para `sam local`) y sin cuenta en serverless.com (la v4 la exige). Todo se instala como dependencia del proyecto. |
+| **Avisos de `npm audit`** | Provienen solo de dependencias de desarrollo de Serverless v3 y serverless-offline (`aws-sdk` v2, `tar`, `adm-zip`…), que no se incluyen en el paquete desplegado. El código de la Lambda no tiene dependencias de producción: `npm audit --omit=dev` reporta 0 vulnerabilidades. Se resolvería migrando la herramienta de IaC (ver mejoras). |
 | **Runtime `nodejs22.x`** | `nodejs20.x` dejó de tener soporte en Lambda en abril de 2026. Serverless v3 no conoce `nodejs22.x` y muestra un *warning* de validación, pero lo acepta y AWS lo soporta. |
 | **esbuild (`serverless-esbuild`)** | Compila TypeScript y empaqueta solo el código usado en un único archivo (zip de ~18 KB), lo que reduce el arranque en frío. Incluye sourcemaps + `--enable-source-maps` para stack traces legibles. |
 | **Arquitectura `arm64`** | Graviton es más barato que x86 en Lambda y el código no tiene dependencias nativas. |
