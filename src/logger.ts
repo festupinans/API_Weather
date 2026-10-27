@@ -27,12 +27,13 @@ export function createLogger(options: LoggerOptions = {}): Logger {
 
   const log = (level: LogLevel, message: string, data: LogContext = {}): void => {
     if (LEVEL_WEIGHT[level] < LEVEL_WEIGHT[minLevel]) return;
+    // Los campos base van al final para que `context`/`data` no puedan sobrescribirlos.
     const entry = {
+      ...context,
+      ...serialize(data),
       timestamp: new Date().toISOString(),
       level,
       message,
-      ...context,
-      ...serialize(data),
     };
     write(JSON.stringify(entry));
   };
