@@ -23,7 +23,7 @@ export interface LoggerOptions {
 export function createLogger(options: LoggerOptions = {}): Logger {
   const minLevel = options.level ?? 'info';
   const context = options.context ?? {};
-  const write = options.write ?? ((line: string) => process.stdout.write(line + '\n'));
+  const write = options.write ?? ((line: string) => process.stdout.write(`${line}\n`));
 
   const log = (level: LogLevel, message: string, data: LogContext = {}): void => {
     if (LEVEL_WEIGHT[level] < LEVEL_WEIGHT[minLevel]) return;
@@ -51,8 +51,7 @@ export function createLogger(options: LoggerOptions = {}): Logger {
 function serialize(data: LogContext): LogContext {
   const result: LogContext = {};
   for (const [key, value] of Object.entries(data)) {
-    result[key] =
-      value instanceof Error ? { name: value.name, message: value.message, stack: value.stack } : value;
+    result[key] = value instanceof Error ? { name: value.name, message: value.message, stack: value.stack } : value;
   }
   return result;
 }

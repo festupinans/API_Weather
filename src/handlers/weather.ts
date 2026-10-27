@@ -1,6 +1,6 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { OpenMeteoClient, type WeatherProvider } from '../clients/openMeteoClient';
-import { loadConfig, type AppConfig } from '../config';
+import { type AppConfig, loadConfig } from '../config';
 import { toAppError } from '../errors';
 import { errorResponse, jsonResponse } from '../http/response';
 import { createLogger, type Logger } from '../logger';

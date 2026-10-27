@@ -89,6 +89,9 @@ describe('WeatherService.getCurrentWeather', () => {
     });
     const service = new WeatherService(provider, createTestLogger().logger);
 
-    await expect(service.getCurrentWeather('Bogota')).rejects.toMatchObject({ code: 'UPSTREAM_ERROR', statusCode: 502 });
+    await expect(service.getCurrentWeather('Bogota')).rejects.toMatchObject({
+      code: 'UPSTREAM_ERROR',
+      statusCode: 502,
+    });
   });
 });

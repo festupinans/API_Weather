@@ -16,6 +16,13 @@ function setup(fetchImpl: (url: URL, init?: RequestInit) => Promise<Response>) {
   return { client, fetchFn, lines };
 }
 
+/** URL con la que se llamó a fetch la primera vez; falla con un mensaje claro si no se llamó. */
+function requestedUrl(fetchFn: ReturnType<typeof setup>['fetchFn']): URL {
+  const call = fetchFn.mock.calls[0];
+  if (!call) throw new Error('Se esperaba que el cliente llamara a fetch');
+  return call[0];
+}
+
 /** fetch que nunca responde y solo termina cuando se aborta (simula a Open-Meteo colgado). */
 function hangingFetch(_url: URL, init?: RequestInit): Promise<Response> {
   return new Promise((_resolve, reject) => {
@@ -29,7 +36,7 @@ describe('OpenMeteoClient.searchCity', () => {
 
     await client.searchCity('São Paulo & Co');
 
-    const url = fetchFn.mock.calls[0]![0];
+    const url = requestedUrl(fetchFn);
     expect(url.origin + url.pathname).toBe('https://geo.test/v1/search');
     expect(url.searchParams.get('name')).toBe('São Paulo & Co');
     expect(url.searchParams.get('count')).toBe('1');
@@ -65,7 +72,7 @@ describe('OpenMeteoClient.getCurrentForecast', () => {
 
     const forecast = await client.getCurrentForecast(4.60971, -74.08175);
 
-    const url = fetchFn.mock.calls[0]![0];
+    const url = requestedUrl(fetchFn);
     expect(url.pathname).toBe('/v1/forecast');
     expect(url.searchParams.get('latitude')).toBe('4.60971');
     expect(url.searchParams.get('longitude')).toBe('-74.08175');

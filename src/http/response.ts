@@ -1,5 +1,5 @@
 import type { APIGatewayProxyResult } from 'aws-lambda';
-import { toErrorBody, type AppError } from '../errors';
+import { type AppError, toErrorBody } from '../errors';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 

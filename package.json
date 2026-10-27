@@ -5,15 +5,18 @@
   "private": true,
   "type": "commonjs",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12"
   },
   "scripts": {
     "dev": "serverless offline start",
     "package": "serverless package",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "ci": "npm run lint && npm run typecheck && npm run test:coverage"
   },
   "repository": {
     "type": "git",
@@ -24,6 +27,7 @@
   },
   "homepage": "https://github.com/festupinans/API_Weather#readme",
   "devDependencies": {
+    "@biomejs/biome": "2.6.3",
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^5.0.5",
