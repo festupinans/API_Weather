@@ -1,0 +1,47 @@
+service: api-weather
+frameworkVersion: '3'
+
+# Carga variables desde un archivo .env si existe (ver .env.example).
+useDotenv: true
+
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  architecture: arm64
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  memorySize: 256
+  # Peor caso: dos llamadas a Open-Meteo de hasta UPSTREAM_TIMEOUT_MS cada una (2 x 5 s) + margen.
+  timeout: 12
+  logRetentionInDays: 7
+  environment:
+    GEOCODING_BASE_URL: ${env:GEOCODING_BASE_URL, 'https://geocoding-api.open-meteo.com/v1'}
+    FORECAST_BASE_URL: ${env:FORECAST_BASE_URL, 'https://api.open-meteo.com/v1'}
+    UPSTREAM_TIMEOUT_MS: ${env:UPSTREAM_TIMEOUT_MS, '5000'}
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
+    # Stack traces con líneas del código TypeScript original (gracias al sourcemap de esbuild).
+    NODE_OPTIONS: --enable-source-maps
+
+functions:
+  getWeather:
+    handler: src/handlers/weather.handler
+    description: Clima actual de una ciudad (Open-Meteo)
+    events:
+      - http:
+          path: weather
+          method: get
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: node22
+    platform: node
+  serverless-offline:
+    httpPort: 3000
+    noPrependStageInUrl: true
