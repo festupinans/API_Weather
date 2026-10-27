@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Si llega un push nuevo a la misma rama, cancela la ejecución anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, tipos, pruebas y empaquetado
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SLS_TELEMETRY_DISABLED: '1'
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v5
+
+      - name: Instalar Node.js 22 (mismo runtime que la Lambda)
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint y formato (Biome)
+        run: npm run lint
+
+      - name: Verificación de tipos
+        run: npm run typecheck
+
+      - name: Pruebas unitarias con cobertura
+        run: npm run test:coverage
+
+      - name: Empaquetar la Lambda (verifica que el despliegue se puede generar)
+        run: npm run package
